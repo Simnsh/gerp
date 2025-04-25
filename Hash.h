@@ -62,7 +62,7 @@ class Hash {
 
 
     private:
-        size_t INITIAL_TABLE_SIZE = 5;
+        size_t INITIAL_TABLE_SIZE = 10000;
         vector<Line*> lineStorage;
 };
 

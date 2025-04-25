@@ -1,0 +1,194 @@
+Names: Vicky Yifan Zhu, Ian Goh
+utlns: yzhu27, igoh02
+
+Answer the questions below, and submit your answers under the assignment
+"gerp Design Checkoff" on Gradescope. You must sign up for a design checkoff
+slot with a TA to discuss your provided answers (see spec for sign up link).
+Make sure to submit this file *prior* to your design checkoff.
+
+For each question, give as much detail as you feel is necessary.
+
+1. What classes and structs will you implement for your program? For each class,
+   provide a list of public functions of that class; for each struct, provide a
+   list of member variables.
+
+Answer: 
+   Structs:
+      (1) Line: Representing each line in the directory
+      struct Line {
+         string dir;
+         int line_num;
+         string content;
+      };
+      (2) Entry: Representing each entry in the Hash table
+      struct Entry {
+         string word;
+         string insensitive_word;
+         unordered_set<Line*> line;
+      };
+
+   Class:
+      (1) class Hash: Representing the hash table, keys containing all distinct words
+      in the directory.
+         - variables: 
+            - vector<vector<Entry>> hash_table;
+            each slot in the hash table represents the vector<Entry> of all
+            various forms of the same word. 
+
+         functions:
+            - readLines() traverse through all files and all lines, create
+               instances of Line.
+                  - Line *new_line = new Line;
+                  - call readWord(struct *new_line);
+
+            - readWord() -> parameter: string *sentence
+                         -> loop through sentece[i], 
+                           -> loop through word[j], 
+                              searchWord(lowerChar(word[j]), word[j])
+                              lowerChar(word[j]) is used to locate the word
+                              index in hash table; word[j] is used to search
+                              the original word.
+                           -> Entry->line.push_back(setence)
+
+            - searchWord() 
+               - index = hash_function(lowerChar(word[j]))
+               - if lower_word[j] in hash_table, search word[j] in the inner vector,
+                  - if word[j] in inner vector, store new pointer to 
+                  sentence[i], Entry = current entry;
+                  - else if word[j] not in inner vector, push new Entry to the
+                  back of the vector.
+               - else lower_word[j] not exist, a new vector is created with 
+                  index from createKeyIndex(). Push the original word into inner
+                  vector of current index
+               - return Entry
+
+            - createKeyIndex(string *word) 
+               hash individual word
+               create new Entry: Entry e = (word[j], sentence[i])
+               insert new Entry to the index: hash_table.insert(e, h(e))
+               return Entry;
+
+            - lowerChar()
+               - Convert each character to lowercase to ensure consistent hash 
+                  codes before inserting into the hash table.
+               
+   
+2. Describe the index that you will build for querying. What specific data
+   structures will you use to build this index? *Important*: Bring an
+   accompanying drawing of your index structure when you come to your checkoff.
+
+Answer:
+      struct Entry {
+         string word;
+         string insensitive_word;
+         unordered_set<Line>* line;
+      };
+
+
+3. To use your index, you will use something for lookup (the key) and you will
+   get some associated data back (the value). What are the C++ *types* of your
+   index's key and value? Examples of valid types: int, string,
+   vector<string>, vector<list<string>>; you may also define custom types using
+   structs/classes, e.g., Animal and vector<Animal> are valid types if you
+   define a struct/class named Animal. If your key/value types involve custom
+   classes/structs, they should be included in your answer to question #1.
+                
+Answer:
+
+   Key type: struct Entry
+   Value type: vector<Line>*
+
+4. Explain what a collision is versus having multiple lines associated with 
+   a particular word. Write (and/or draw) out an example of when a 
+   collision occurs. Write (and/or draw) out an example of when multiple 
+   lines associated with a single word. 
+
+Answer:
+   (1) Collision: 
+      Collision happens when different words results in same index after hash
+      function.
+      word: the, tax
+      hash("the") == hash("tax"), this is when collision happens.
+      
+   (2) Multiple lines associated with a single word: 
+      word: the 
+      line1: the cat eye
+      line2: the apple pie
+      word "the" is associated with two lines, for this Entry, it'll contain 
+      two lines in the vector<Line>*.
+
+5. What do you expect the *space* complexity of your index will be? How many
+   times will a single line be stored according to your data structures?
+
+Answer:
+   O(lines) + O(words)
+
+6. What is the time complexity of *building* your index? If you refer to some
+   variable, be sure to specify what the variable refers to, e.g., in "O(n)",
+   state explicitly what "n" is.
+
+Answer:
+   O(lines) + O(words)
+                
+7. What is the time complexity of *using* your index for lookup? As above,
+   be specific about variables you use.
+
+Answer:
+   O(1)
+
+8. How will you handle case-sensitive search?
+   What is the time complexity (should be close to O(1))?
+
+Answer:
+   Search lower_word in hash table, 
+      - if exists, go to the vector<Entry>, search for the correct form of the
+      word, return the corresponding lines. 
+      - if doesn't exist, return error message.
+      searchWord(lower_word, word), if the Entry is returned, go to the Entry
+      and return all the lines. vector<Line>*
+
+
+9. How will you handle case-insensitive search?
+   What is the time complexity (should be close to O(1))?
+
+Answer:
+   call createKeyIndex() to get index of the word. Access inner vector at the 
+   current index. Loop through vector, and print out all lines.  
+
+
+10. How are you handling duplicate words within a line? Consider these two example 
+   lines: 
+
+      (i) the cat and the dog 
+      (ii) the cat and THE dog 
+
+   If a user does a case sensitive query on line (i) it should report 'the' only 
+   once by showing the line only once in the output. How will you do this? 
+
+   - By using unordered_set to store lines, we prevent a same sentence to 
+   appear more than once. So in the search result, there's only one sentence
+   returned.
+
+   If a user does a case insensitive query on line (ii) it should report 'the' 
+   only once by showing the line only once in the output. How will you do this? 
+
+   - Before returning the result, first store all lines containing all forms of
+   "the" into an unordered_set, then return this unordered_set, then 
+   duplication will be prevented.
+
+Answer:
+
+11. How will you test your implementation and what specific evidence of testing
+    will you submit?
+
+Answer:
+   For functions, using unit_tests.h.
+   For overall results, using diff.
+
+12. What is your schedule for completing this assignment? Include specific dates
+    and the tasks that you would like to accomplish by each date. Do not forget
+    testing!
+
+Answer: 
+   Phase 1: Apr 16
+   Phase 2: finished by Apr 21, fully tested by Apr 23.

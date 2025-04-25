@@ -1,0 +1,174 @@
+/**********************************************************
+* Project 4: gerp
+* CS 15
+* README
+* 
+* Student: Ian Goh, Vicky Zhu
+*********************************************************/
+
+Phase 1:
+    - to run Makefile, type the command "make processing.o"
+    - to run unit_tests.h, type the command "unit_test"
+
+A The title of the homework and the author names (you and your partner) 
+    - Gerp
+    - Ian Goh(igoh02), Vicky Yifan Zhu (yzhu27)
+
+B The purpose of the program 
+    - Search query within the file directory, return the file line number, 
+    file directory, and the line containing the word. For user’s query, handle 
+    sensitive/insensitive word search, redirect the output to the new output 
+    file, and quit the program.
+
+C Acknowledgements for any help you received, including references to outside 
+sources you consulted (though there is no need to list C++ references like 
+cplusplus.com). 
+    - We also used Stack Overflow to find solutions to various bugs we
+      encountered during development.
+
+D The files that you provided and a short description of what each file is and 
+its purpose 
+    - Hash.cpp: Contains the implementation of the Hash class, including 
+      functions for indexing words, searching, and handling user queries.
+    - Hash.h: Declares the interface for the Hash class, including member 
+      functions and variables used for managing the word index.
+    - main.cpp: Serves as the entry point of the program. It processes user 
+      input and coordinates actions by calling functions from the Hash class.
+    - Makefile: Defines build instructions for the project. It specifies how to
+      compile and link the source files into an executable, streamlining the 
+      build process with make.
+    - unit_tests.h: Contains test functions used to verify the correctness of 
+      the Hash class and its related components. 
+
+E How to compile and run your program 
+  - Compile: make
+  - Run program: 
+        ./gerp /comp/15/files/proj-gerp-test-dirs/mediumGutenberg outputFile
+
+
+F An “architectural overview,” i.e., a description of how your various program 
+modules relate. For example, the FSTree implementation keeps a pointer to the 
+root DirNode. 
+    - Main Module (main.cpp)
+        - Entry point of the application
+        - Handles command-line arguments validation
+        - Initializes the Hash object and begins program execution
+    - Hash Module (Hash.h & Hash.cpp)
+        - A hash table-based word indexer for efficient word lookups
+        - Directory traversal logic to process all files in a directory 
+          structure
+        - User interaction loop for processing search queries
+        - Word normalization and case sensitivity handling
+        - Search results formatting and output
+    - File System Representation (FSTree.h & DirNode.h)
+        - Provides an n-ary tree representation of the file system
+        - FSTree - Manages the overall file system tree structure
+        - DirNode - Represents individual directories within the file system
+        - These modules enable recursive directory traversal
+
+G An outline of the data structures and algorithms that you used. Given that 
+this is a data structures class, you need to always discuss any data structures 
+that you used and justify why you used them. For this assignment it is 
+imperative that you explain your data structures and algorithms in detail, as it
+will help us understand your code since there is no single right way of
+completing this assignment. 
+
+    Data Structures:
+    - We use the Set Abstract Data Type (ADT) in this program to store a 
+      collection of line references (Line*) for each word occurrence. The Set 
+      ADT is characterized by its ability to store unique elements, with 
+      efficient support for membership testing, insertion, and deletion. In our
+      implementation, this ADT is realized using the unordered_set data 
+      structure from the C++ Standard Library.
+    - Each Entry struct contains an unordered_set<Line*> to store unique 
+      pointers to the lines in which the word appears.
+    - Using a set ensures that a particular line is recorded only once per word,
+      even if the word appears multiple times on that line.
+    - We chose unordered_set because it automatically enforces uniqueness and 
+      offers average-case constant time complexity (O(1)) for insertion and 
+      lookup which is critical for maintaining performance during large-scale 
+      directory traversal and word indexing.
+    - This enables efficient, duplicate-free accumulation of line references for
+      both case-sensitive and case-insensitive searches.
+    - Disadvantage: One trade-off of using unordered_set is that it does not 
+      preserve insertion order, which means the recorded lines may be printed in
+      an arbitrary order. This can be less intuitive for users who expect 
+      results to appear in file or line-number order.
+    
+    Algorithm:
+    - One key algorithm used in this project is breadth-first traversal, which 
+      is used to explore the entire directory structure starting from the root. 
+      This is done using a queue that stores pairs of directory nodes and their 
+      current path as strings.
+    - At each step, the algorithm removes a directory from the front of the
+      queue, processes all its files by creating their full paths, and then adds
+      each of its subdirectories to the queue for later processing. This ensures
+      that all folders and files are visited in a level-by-level order, and 
+      avoids issues like deep recursion or stack overflow.
+    - This traversal is important because it ensures that every file in the 
+    directory tree is found and processed. Each file is read line by line, and 
+    every word is stored into a hash table. This allows the program to support 
+    fast and efficient word searching later.
+    
+H Details and an explanation of how you tested the various parts of your classes
+and the program as a whole. You may reference the testing files that you 
+submitted to aid in your explanation. 
+  (1) Edge cases:
+    a. Word Processing:
+    - We tested edge cases for word parsing using the functions isAlpha_test1(),
+      isAlphaHelper_test(), isAlphaHelper_test2(), and isAlphaHelper_test3(). 
+      These tests focused on ensuring that words with leading and trailing 
+      non-alphanumeric characters are correctly stripped and stored in the 
+      hash_table without errors or unexpected behavior.
+    b. Invalid Queries:
+    - We tested invalid or nonsense inputs as user queries to confirm that the 
+      program correctly outputs a "Not Found" message. This verifies the 
+      robustness of both case-sensitive and case-insensitive search functions 
+      when handling inputs that do not exist in the indexed files.
+
+    c. Case Variations:
+    - We also verified that words with different casing 
+      (e.g., "Age", "AGE", "age") are properly handled depending on whether 
+      the user performs a case-sensitive or case-insensitive search.
+  (2) Single function test:
+    We test if single functions in Hash.cpp work correctly by reading in small 
+    amount of data and checking if the cout match what we expect.
+    a. traverseDirectory():
+      - After getting the name of the directory given by user, we call traverseDirectory() to 
+      traverse all the files in the directory.
+      - We test traverse directory by traverseDirectory_test1(), traverseDirectory_test2().
+      - We added cout in traverseDirectory() and check if all lines in our test input directory
+      are printed as expected.  
+    b. readLines():
+      - After getting the filename in traverseDirectory(), we call readLines(filename) to read
+      lines in the file. 
+      - We test readLines() by readLines_test1(), readLines_test2(). 
+      - In those tests, we give the directory of a file that we've cat the content, and add
+      cout in readLines() to see if the lines are read correctly. 
+    c. readWord():
+      - After getting the line, we call readWord(line) to read every words in the line, if new word
+      we add a new Entry to our hash table along with the line. Else if the word is already seen
+      we add the line to the unordered_set of the Entry.
+      - We test readWord() by readWord_test1(), readWord_test2(). We gave our own lines in
+      those tests.
+      - First we test if all distinct words in a line are correctly pushed in the table. Then we test
+      if two words of different forms, whether are not they can be pushed into the same vector<Entry>
+      and different Entr. We print their index in the hash table to check this.
+  
+  (3) Check if data are arrang
+  
+  (4) hash_table test
+    - We created the push_word_test function in unit_tests.h to verify that 
+      words are correctly stored in the hash_table.
+    - Bug Found: 
+        When the same original word appeared multiple times in the input text, 
+        instead of inserting the associated line pointer into the existing Entry
+        in the inner vector of hash_table, a new Entry was mistakenly created 
+        and appended. This led to duplicate Entry objects for the same word.
+    - Solution:
+        During debugging, we printed out the contents of each Entry in the 
+        hash_table and compared them. We discovered that the issue stemmed from
+        incorrect handling of Entry instances when copying entries during the 
+        resizing (expand) process. Specifically, the logic failed to properly 
+        maintain the structure of entries with matching insensitive words, 
+        resulting in unintended duplicates.
