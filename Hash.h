@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <istream>
 #include <iostream>
+#include <ostream>
 #include <sstream>
 #include <fstream>
 #include <cstring>
@@ -37,7 +38,9 @@ class Hash {
         template<typename streamtype>
         void open_or_die(streamtype &stream, string file_name);
         void searchWord(bool is_sen, string word, ostream &output);
-        void run(string directory, ostream &output);
+        void printToFile(ostream &output);
+        // void run(string directory, ostream &output);
+        void run(string directory, string fileName);
         Line* createLine(string dir, int line_num, string content);
         Entry createEntry(string word);
         void readLines(string inputFile);
@@ -55,6 +58,7 @@ class Hash {
         int numItemsInTable;
 
         vector<vector<Entry>> hash_table; 
+        unordered_set<string> lineToPrint;
 
 
     private:
