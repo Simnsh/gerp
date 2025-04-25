@@ -56,21 +56,30 @@ void isAlphaHelper_test2() {
     cout << ori << endl;
 }
 
+/*
+ * isAlphaHelper_test3
+ * Verify all the non-alphanum chars are removed
+ */
 void isAlphaHelper_test3() {
     string input = ")(*&^%$%^&*(*&^%^&^)(*&^%^&*(*&^%^&";
     string ori = stripNonAlhpaNumHelper(input);
     cout << "Result: " << ori << endl;
 }
 
-// use diffchecker visually check the line print out to terminal
-// cout line from readLines in Hash.cpp, but cout will be remove by the time
-// this project is submitted
+/*
+ * readLines_test1
+ * use diffchecker visually check the line print out to terminal
+ * Verify the lines in an arbitrary file in the file system can be read
+ */
 void readLines_test1() {
     Hash hash1;
     hash1.readLines("/comp/15/files/proj-gerp-test-dirs/tinyData/test.txt");
-
 }
 
+/*
+ * readLines_test2
+ * Verify the lines in an arbitrary file in the file system can be read
+ */
 void readLines_test2() {
     Hash hash1;
     hash1.readLines("/comp/15/files/proj-gerp-test-dirs/smallGutenberg/www.gutenberg.lib.md.us/1/0/0/4/10040/10040.txt");
@@ -117,6 +126,12 @@ void readWord_test2() {
     delete line2;
 }
 
+/*
+ * expand_test1
+ * Tests for hash table expansion, print the table size and num of items and
+ * load factor, make sure it exceeds the load factor and is expanded to a 
+ * specific size.
+ */
 void expand_test1() {
     Line *line1 = new Line;
     line1->content = "at filename 24689 would be found at 24689:";
@@ -141,6 +156,11 @@ void expand_test1() {
     delete line2;
 }
 
+/*
+ * expand_test2
+ * Tests the hash table expansion and prints all words after expansion
+ * to verify they were correctly transferred to the new table
+ */
 void expand_test2() {
     Line *line1 = new Line;
     line1->content = "at filename 24689 would be found at 24689:";
@@ -166,6 +186,12 @@ void expand_test2() {
     delete line2;
 }
 
+/*
+ * expand_test3
+ * Tests for hash table expansion, print the original index and updated index
+ * after expansion, compare they are different to ensure the expansion works
+ * correctly
+ */
 void expand_test3() {
     Line *line1 = new Line;
     line1->content = "at filename 24689 would be found at 24689:";
@@ -234,6 +260,12 @@ void expand_test3() {
     delete line2;
 }
 
+/*
+ * push_word_test
+ * Tests the pushWord method of the Hash class by inserting multiple variations
+ * of the word "age" (with different capitalizations) from different locations
+ * and then verifies the search functionality works correctly for case-sensitive searches
+ */
 void push_word_test() {
     Hash h;
 
