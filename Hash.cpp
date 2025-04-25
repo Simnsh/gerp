@@ -220,6 +220,15 @@ string Hash::stripNonAlhpaNumHelper(string &input) {
     return input;
 }
 
+/*
+ * name:      readLines()
+ * purpose:   read lines in the input file, create new line pointer, and pass
+ *            the line to readWord to read words in the line
+ * arguments: input file string
+ * returns:   none
+ * effects:   create new line pointer for each line in the file, then read
+ *            every word in the line. 
+ */
 void Hash::readLines(string inputFile) {
     string line;
     ifstream infile(inputFile);
@@ -228,54 +237,46 @@ void Hash::readLines(string inputFile) {
         line_num++;
         Line* l = createLine(inputFile, line_num, line);
         readWord(l);
-        // cout << "Line content:" << l->content << endl;
-        // cout << "Line dir: " << l->dir << endl;
-        // cout << "Line number:" << l->line_num << endl;
     }
     
 }
 
+/*
+ * name:      readWord()
+ * purpose:   read the words in the line, pass the word and line to pushWord()
+ *            to push the word and the line.
+ * arguments: the line pointer containing this word
+ * returns:   none
+ * effects:   potentially create new word Entry, and push the line to the back
+ *            of the lines list 
+ */
 void Hash::readWord(Line *line) {
     istringstream iss(line->content);
     string word;
     while (iss >> word) { 
         pushWord(word, line);
-        // cout << "currWord: " << currWord.word << endl;
-        // cout << "insensitive word: " << currWord.insensitive_word << endl;
-        // for (Line* wd : currWord.line) {
-        //     cout << "Line num: " << wd->line_num << endl;
-        //     cout << "Line content: " << wd->content << endl;
-        //     cout << "Line directory: " << wd->dir << endl;
-        // }
     }
 }
 
-// void Hash::expand() {
-//     vector<vector<Entry>> new_hash_table;
-//     int newTableSize = currentTableSize*2;
-//     new_hash_table.resize(newTableSize);
-//     for (int i = 0; i < currentTableSize; i++) {
-//         if (not hash_table[i].empty()) {
-//             size_t index = hash<string>()(hash_table[i][0].insensitive_word) 
-//                 % newTableSize;
-//             vector<Entry> element = hash_table[i];
-//             new_hash_table[index] = element;
-//         }
-//     }
-//     currentTableSize = newTableSize;
-//     hash_table = new_hash_table;
-    
-// }
-
+/*
+ * name:      expand()
+ * purpose:   expand the hash table by doubling the size
+ * arguments: none
+ * returns:   none
+ * effects:   doubling the size of hash table, copy all elements, and re-index
+ *            all of them in the new hash table. 
+ */
 void Hash::expand() {
     int newSize = currentTableSize * 2;
-    vector<vector<Entry>> newTable(newSize);  // new, bigger table
+    vector<vector<Entry>> newTable(newSize); 
 
     for (const vector<Entry> &bucket : hash_table) {
         for (const Entry &entry : bucket) {
             int newIndex = hash<string>()(entry.insensitive_word) % newSize;
 
-            while (not newTable[newIndex].empty() && newTable[newIndex][0].insensitive_word != entry.insensitive_word) {
+            while ((not newTable[newIndex].empty()) and 
+                (not newTable[newIndex][0].insensitive_word == 
+                entry.insensitive_word)) {
                 newIndex = (newIndex + 1) % newSize;
             }
             newTable[newIndex].push_back(entry);
@@ -283,9 +284,16 @@ void Hash::expand() {
     }
 
     hash_table = newTable;
-    currentTableSize = newSize;   // update size tracker
+    currentTableSize = newSize;
 }
 
+/*
+ * name:      lowerChar()
+ * purpose:   convert the word to lower form
+ * arguments: the string to convert
+ * returns:   the converted word
+ * effects:   convert the passed in word to lower letters
+ */
 string Hash::lowerChar(string toConvert) {
     string strippedWd = stripNonAlphaNum(toConvert);
     for (char &ch : strippedWd) {
@@ -294,9 +302,19 @@ string Hash::lowerChar(string toConvert) {
     return strippedWd;
 }
 
-
+/*
+ * name:      pushWord()
+ * purpose:   find whether to push the word into the table or not. If new word,
+ *            create new Entry, push at back of the index, and push line.
+ *            If not new word, push the line to the back of the existing
+ *            entry.
+ * arguments: the string of passed word, and the line pointer to the passed
+ *            line
+ * returns:   void
+ * effects:   if we encounter the new word, create a new entry and push the
+ *            entry to the hash table, put the line in the vector
+ */
 void Hash::pushWord(string passed_word, Line *passed_line) {
-    // find hash index, call createKeyIndex(word)
     string lower_word = lowerChar(passed_word);
     string stripped_word = stripNonAlphaNum(passed_word);
     
@@ -305,81 +323,38 @@ void Hash::pushWord(string passed_word, Line *passed_line) {
     }
 
     int index = createKeyIndex(lower_word);
-
-
-        // // Debug output: initial word info
-        // cout << "\n--- Pushing word: " << passed_word << " ---" << endl;
-        // cout << "Stripped word: " << stripped_word << " | Lowercase word: " << lower_word << endl;
-        // cout << "Initial index: " << index << endl;
-
-    // check if word exist, apply linear probing
     while (!hash_table[index].empty()) {
-        // cout << "Checking index: " << index << " with " << hash_table[index].size() << " entries" << endl;
-
-
         bool same_insensitive = false;
-        // vector<Entry> words = hash_table[index];
         size_t entry_vector = hash_table[index].size();
         for (size_t i = 0; i < entry_vector; i++) {
-            // cout << "  Entry #" << i << ": word = " << hash_table[index][i].word
-            //      << ", insensitive = " << hash_table[index][i].insensitive_word << endl;
-
-
-            // if we find the sensitive word, return entry
             if (stripped_word.compare(hash_table[index][i].word) == 0) {
-                // cout << "  Found exact sensitive match. Adding line and returning.\n";
-
                 hash_table[index][i].line.insert(passed_line);
                 return;
             } 
-            else if (lower_word.compare(hash_table[index][i].insensitive_word) == 0) {
-                // cout << "  Found matching insensitive group.\n";
-
+            else if (lower_word.compare(
+                hash_table[index][i].insensitive_word) == 0) {
                 same_insensitive = true;
-
-                // cout << "inside else if, word is : " << passed_word << endl;
-
-                // // create new entry and push at back of current entry vector
-                // pushWordHelper(stripped_word, passed_line, index);
-                // return;
             }
         }
-        
-
-        if (same_insensitive) {
-            // cout << "  Adding new variant '" << stripped_word << "' to existing insensitive group at index " << index << endl;
-
-            // create new entry and push at back of current entry vector
+        if (same_insensitive) { 
+            // create new entry, push at back of current entry vector
             pushWordHelper(stripped_word, passed_line, index);
-            
-            // delete later, debug purpose
-            // cout << "Entries after insertion at index " << index << ":\n";
-            // for (const Entry& entry : hash_table[index]) {
-            //     cout << "  - word: " << entry.word << ", insensitive: " << entry.insensitive_word << endl;
-            // }
-
             return;
         }
-        // for (size_t i = 0; i < entry_vector; i++) {
-        //     if (lower_word.compare(hash_table[index][i].insensitive_word) == 0) {
-        //         pushWordHelper(stripped_word, passed_line, index);
-        //         return;  
-        //     }
-        // }
-
-        // pushWordHelper(stripped_word, passed_line, index);
-        // return;
-
-
         index = (index + 1) % hash_table.size();
     }
-
-
-
-    // If not found in probing, create new entry
     pushWordHelper(stripped_word, passed_line, index);
 }
 
+/*
+ * name:      pushWordHelper()
+ * purpose:   push the new word to the back of the specific Entry vector in
+ *            the hash table
+ * arguments: the string of stripped word, the line pointer, and the index
+ *            of the Entry vector to push the word
+ * returns:   void
+ * effects:   push the word to the back of the Entry vector in the hash table
+ */
 void Hash::pushWordHelper(string stripped, Line *line, int index) {
     // If not found in probing, create new entry
     Entry newEntry = createEntry(stripped);
@@ -387,18 +362,15 @@ void Hash::pushWordHelper(string stripped, Line *line, int index) {
     // push word to hash_table
     newEntry.line.insert(line);
     hash_table[index].push_back(newEntry);
-
-    // cout << "  >> pushWordHelper: inserting word '" << newEntry.word 
-    //  << "', insensitive = '" << newEntry.insensitive_word 
-    //  << "' at index " << index << endl;
-
-    // for (Entry w : hash_table[index]) {
-    //     cout << "Current sensitive word : " << w.word << endl;
-    //     cout << "Current insensitive word : " << w.insensitive_word << endl;
-    //     cout << "Index is : " << index << endl;
-    // }
 }
 
+/*
+ * name:      createKeyIndex()
+ * purpose:   get the index of a specific word in hash table
+ * arguments: the word string
+ * returns:   the integer indicating the word's index in hash table
+ * effects:   compute the index of the word
+ */
 int Hash::createKeyIndex(string word) {
     size_t index = hash<string>()(word) % hash_table.size();
     return index;
