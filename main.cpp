@@ -16,13 +16,28 @@ int main(int argc, char *argv[]) {
         cerr << "Usage: ./gerp inputDirectory outputFile" << endl;
         return EXIT_FAILURE;
     }
-    ofstream outstream;
-    open_or_die(outstream, argv[2]);
+    // ofstream outstream;
+
+    string fileName = argv[2];
+    // open_or_die(outstream, argv[2]);
     Hash h;
-    h.run(argv[1], outstream);
+    h.run(argv[1], fileName);
     
-    outstream.close();
+    // outstream.close();
 }
+
+// int main(int argc, char *argv[]) {
+//     if (argc != 3) {
+//         cerr << "Usage: ./gerp inputDirectory outputFile" << endl;
+//         return EXIT_FAILURE;
+//     }
+//     ofstream outstream;
+//     open_or_die(outstream, argv[2]);
+//     Hash h;
+//     h.run(argv[1], outstream);
+    
+//     outstream.close();
+// }
 
 /*
  * Try to open the given file.
