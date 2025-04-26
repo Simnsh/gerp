@@ -1,3 +1,15 @@
+/*
+ *  Hash.cpp
+ *  Ian Zien Goh, Vicky Yifan Zhu
+ *  Apr 25 2025
+ *
+ *  CS 15 Proj 4 Gerp
+ *
+ *  Implementation of the Hash class. 
+ *  This class handles directory traversal, word extraction, and word search 
+ *  operations.
+ */
+
 #include <iostream>
 #include <cstring>
 
@@ -50,26 +62,25 @@ void Hash::run(string directory, string fileName) {
     cout << "Query? ";
     cin >> query;
     while (not cin.fail()) {
+
         if ((query == "@q") or (query == "@quit")) {
+            output.close();
             cout << "Goodbye! Thank you and have a nice day." << endl;
             return;
-        } else if ((query == "@i") or (query == "insensitive")) {
+        } else if ((query == "@i") or (query == "@insensitive")) {
             cin >> word;
             searchWord(false, word, output);
-
-            // call searchword(bool sensitive, string word)
         } else if (query == "@f") {
             cin >> newFile;
             output.close();
             open_or_die(output, newFile);
         } else {
             searchWord(true, query, output);
-
-            // search word
         }
         cout << "Query? ";
         cin >> query;
     }
+    cout << "Goodbye! Thank you and have a nice day." << endl;
     output.close();
 }    
 
@@ -109,49 +120,78 @@ void Hash::open_or_die(streamtype &stream, string file_name)
 void Hash::searchWord(bool is_sen, string word, ostream &output) {
     // true - sensitiev / false - insensitive
     string lower = lowerChar(word);
+    string stripped = stripNonAlphaNum(word);
     int index = createKeyIndex(lower);
 
-    while (!hash_table[index].empty() && 
-                hash_table[index][0].insensitive_word != lower) {
+    if (stripped == "") {
+        if (is_sen) {
+            output << " Not Found. Try with @insensitive or @i." << endl;
+        } else {
+            output << " Not Found." << endl;
+        }
+        return;
+    }
+
+    while ((not hash_table[index].empty()) and 
+                (not (hash_table[index][0].insensitive_word == lower))) {
         index = (index + 1) % hash_table.size();
     }
 
     if (hash_table[index].empty()) {
         if (is_sen) {
-            output << word 
+            output << stripped 
             << " Not Found. Try with @insensitive or @i." << endl;
         } else {
-            output << word << " Not Found." << endl;
+            output << stripped << " Not Found." << endl;
         }
     } else {
-        if (is_sen) { 
-            for (size_t i = 0; i < hash_table[index].size(); i++) {
-                cout << hash_table[index].size() << endl;
+        searchWordHelper(is_sen, index, stripped, output);
+    }
+}
 
-                if (word.compare(hash_table[index][i].word) == 0) {
-                    string line = "";
-                    for (Line* l : hash_table[index][i].line) {
-                        line = l->dir + ":" + to_string(l->line_num) 
-                                + ": " + l->content + "\n";
-                        lineToPrint.insert(line);
-                    }
-                    printToFile(output);
-                    lineToPrint.clear();
-                    // return;
-                }
-            }
-        } else { // word is insen
-            for (size_t i = 0; i < hash_table[index].size(); i++) {
-                string line= "";
+/*
+ * name:      searchWordHelper
+ * purpose:   write the lines of the word to the output stream
+ * arguments: - is_sen: a boolean indicating whether the search is 
+ *                      case-sensitive (true) or case-insensitive (false).
+ *            - index: the index to push the lines
+ *            - word: the word to search
+ *            - output: the stream we write the lines to
+ * returns:   None
+ * effects:   Writes the search results to the output stream. 
+ */
+void Hash::searchWordHelper(bool is_sen, int index, string word, 
+                            ostream &output) {
+    bool found = false;
+    if (is_sen) { 
+        for (size_t i = 0; i < hash_table[index].size(); i++) {
+            if (word.compare(hash_table[index][i].word) == 0) {
+                string line = "";
                 for (Line* l : hash_table[index][i].line) {
-                    line = l->dir + ":" + to_string(l->line_num) + ": " 
-                                + l->content + "\n";
+                    line = l->dir + ":" + to_string(l->line_num) 
+                            + ": " + l->content + "\n";
                     lineToPrint.insert(line);
                 }
+                printToFile(output);
+                lineToPrint.clear();
+                found = true;
             }
-            printToFile(output);
-            lineToPrint.clear();
         }
+        if (not found) {
+            output << word 
+            << " Not Found. Try with @insensitive or @i." << endl;
+        }
+    } else { 
+        for (size_t i = 0; i < hash_table[index].size(); i++) {
+            string line= "";
+            for (Line* l : hash_table[index][i].line) {
+                line = l->dir + ":" + to_string(l->line_num) + ": " 
+                            + l->content + "\n";
+                lineToPrint.insert(line);
+            }
+        }
+        printToFile(output);
+        lineToPrint.clear();
     }
 }
 
@@ -328,9 +368,9 @@ void Hash::expand() {
         for (const Entry &entry : bucket) {
             int newIndex = hash<string>()(entry.insensitive_word) % newSize;
 
-            while (not newTable[newIndex].empty() && 
-                    newTable[newIndex][0].insensitive_word 
-                        != entry.insensitive_word) {
+            while ((not newTable[newIndex].empty()) and 
+                    (not (newTable[newIndex][0].insensitive_word 
+                        == entry.insensitive_word))) {
                 newIndex = (newIndex + 1) % newSize;
             }
             newTable[newIndex].push_back(entry);
@@ -369,18 +409,14 @@ string Hash::lowerChar(string toConvert) {
  *            entry to the hash table, put the line in the vector
  */
 void Hash::pushWord(string passed_word, Line *passed_line) {
-    // find hash index, call createKeyIndex(word)
     string lower_word = lowerChar(passed_word);
     string stripped_word = stripNonAlphaNum(passed_word);
-    
     if (numItemsInTable * 1.0 / currentTableSize >= 0.75) {
         expand();
     }
-
     int index = createKeyIndex(lower_word);
-
     // check if word exist, apply linear probing
-    while (!hash_table[index].empty()) {
+    while (not hash_table[index].empty()) {
         bool same_insensitive = false;
         size_t entry_vector = hash_table[index].size();
         for (size_t i = 0; i < entry_vector; i++) {
@@ -400,8 +436,7 @@ void Hash::pushWord(string passed_word, Line *passed_line) {
             return;
         }
         index = (index + 1) % hash_table.size();
-    }
-    // If not found in probing, create new entry
+    } // If not found in probing, create new entry
     pushWordHelper(stripped_word, passed_line, index);
 }
 

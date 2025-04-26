@@ -125,39 +125,113 @@ submitted to aid in your explanation.
       program correctly outputs a "Not Found" message. This verifies the 
       robustness of both case-sensitive and case-insensitive search functions 
       when handling inputs that do not exist in the indexed files.
-
     c. Case Variations:
     - We also verified that words with different casing 
       (e.g., "Age", "AGE", "age") are properly handled depending on whether 
       the user performs a case-sensitive or case-insensitive search.
+      
   (2) Single function test:
     We test if single functions in Hash.cpp work correctly by reading in small 
     amount of data and checking if the cout match what we expect.
+    
     a. traverseDirectory():
-      - After getting the name of the directory given by user, we call traverseDirectory() to 
-      traverse all the files in the directory.
-      - We test traverse directory by traverseDirectory_test1(), traverseDirectory_test2().
-      - We added cout in traverseDirectory() and check if all lines in our test input directory
+      - After getting the name of the directory given by user, we call 
+        traverseDirectory() to traverse all the files in the directory.
+      - We test traverse directory by traverseDirectory_test1(), 
+        traverseDirectory_test2().
+      - We added cout in traverseDirectory() and check if all lines in our test
+        input directory
       are printed as expected.  
+    
     b. readLines():
-      - After getting the filename in traverseDirectory(), we call readLines(filename) to read
-      lines in the file. 
+      - After getting the filename in traverseDirectory(), we call 
+        readLines(filename) to read lines in the file. 
       - We test readLines() by readLines_test1(), readLines_test2(). 
-      - In those tests, we give the directory of a file that we've cat the content, and add
-      cout in readLines() to see if the lines are read correctly. 
+      - In those tests, we give the directory of a file that we've cat the 
+        content, and add cout in readLines() to see if the lines are 
+        read correctly. 
+    
     c. readWord():
-      - After getting the line, we call readWord(line) to read every words in the line, if new word
-      we add a new Entry to our hash table along with the line. Else if the word is already seen
-      we add the line to the unordered_set of the Entry.
-      - We test readWord() by readWord_test1(), readWord_test2(). We gave our own lines in
-      those tests.
-      - First we test if all distinct words in a line are correctly pushed in the table. Then we test
-      if two words of different forms, whether are not they can be pushed into the same vector<Entry>
-      and different Entr. We print their index in the hash table to check this.
-  
-  (3) Check if data are arrang
-  
-  (4) hash_table test
+      - After getting the line, we call readWord(line) to read every words in 
+        the line, if new word we add a new Entry to our hash table along with 
+        the line. Else if the word is already seen we add the line to the 
+        unordered_set of the Entry.
+      - We test readWord() by readWord_test1(), readWord_test2(). We gave our 
+        own lines in those tests.
+      - First we test if all distinct words in a line are correctly pushed in 
+        the table. Then we test if two words of different forms, whether are not
+        they can be pushed into the same vector<Entry> and different Entr. We 
+        print their index in the hash table to check this.
+    
+    d. expand():
+      - We tested how the hash table handles load factor, resizing, and proper 
+        insertion of words and associated line information. These tests were 
+        done using the functions expand_test1(), expand_test2(), expand_test3(),
+        and push_word_test().
+      - expand_test1():
+        We created two Line objects with repeated and varied-cased words.
+        We inserted both lines using readWord() and printed the table size, 
+        number of items, and load factor.
+        This test verifies that the initial table is correctly initialized with
+        20 buckets, and that insertion does not exceed expected capacity.
+      - expand_test2():
+        Similar to expand_test1(), we inserted two Line objects 
+        using readWord().
+        We then iterated through all entries in the hash_table and printed the 
+        word stored in each Entry.
+        This test checks that all inserted words are present in the table and 
+        that casing does not affect insertion behavior.
+      - expand_test3():
+        We inserted the first line using readWord(), printed the full hash_table
+        content including word, insensitive_word, and all associated line data.
+        Then we inserted a second line and printed the updated state of the 
+        hash_table.
+        This test confirms that multiple insertions preserve the structure of 
+        the hash_table and that each word entry correctly stores an 
+        unordered_set of Line*.
+        We validated that the correct lines were associated with the correct 
+        word forms.
+    
+    e. push_word_test():
+       We manually pushed different case variants of the word "age" using 
+       pushWord(), across different lines and files.
+       We then called searchWord(true, "AGE", cout) to perform a case-sensitive
+       search.
+       This test confirms that different case forms are correctly handled 
+       depending on search mode and that duplicate entries are avoided within 
+       the same line.
+       It also verifies the behavior of grouping words by case and storing each 
+       with its associated line.
+     
+    f. searchWord():
+       We test searchWord() by giving same input to ./gerp and ./the_gerp, sort 
+       the results, and diff. 
+       The input we used:
+        - Word (any word with first letter being capital)
+        - @i WORD (any word with all letters capital)
+        - @insensitive Word
+        - Nonsense word, should print "Not Found, try with @i or @insensitive"
+        - @i Nonsense word, should print "Not Found". 
+        - make sure @q and @quit are both working
+    
+    g. printToFile():
+       Since this is a helper function to print the output, and we had 
+       previously test our program work able to select the correct line to 
+       print, so we use tinyData to test our program. Then, we use cat to check 
+       whether the output is expected
+    
+    h. @f newFile:
+      - We test "@f newFile" by creating 4 files, first 3 queries output to 
+        the original file, then do @f newFile, give another 3 queries. 
+      - Then do the same thing with ./the_gerp. 
+      - Sort the results and diff to make sure there's no difference to the 
+        result. 
+
+    Note: The tests in unit_tests.h may not run at submission time because some 
+    functions that were previously public have been moved to the private section
+    of the Hash class.
+    
+  (3) hash_table test
     - We created the push_word_test function in unit_tests.h to verify that 
       words are correctly stored in the hash_table.
     - Bug Found: 
@@ -172,3 +246,8 @@ submitted to aid in your explanation.
         resizing (expand) process. Specifically, the logic failed to properly 
         maintain the structure of entries with matching insensitive words, 
         resulting in unintended duplicates.
+
+
+I. Please let us know approximately how many hours you spent working on this 
+project. This should include both weeks one and two.
+    - 45 hours
